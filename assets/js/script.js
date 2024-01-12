@@ -22,27 +22,37 @@
 // use data in local.storage to create a city button under the <hr> in search area for city history
 //  - when you click the city button it displays the current and future conditions for that city
 
+// ---------------- Global Variables -----------------------
+
 // This is my API key
-const APIKey = "f96c7a671884714421e9e81f5f24d150";
+const apiKey = "f96c7a671884714421e9e81f5f24d150";
 
-// Building the URL I need to query the database
-const queryURL = `api.openweathermap.org/data/2.5/forecast?lat={lat}&lon={lon}&appid=${APIKey}`;
-
-$("#search-button").on("click", function (event) {
-    event.preventDefault();
+const currentWeatherSection = function (cityName) {
+    const queryURL = `https://api.openweathermap.org/data/2.5/weather?q=${cityName}&appid=${apiKey}`;
     
     fetch(queryURL)
         .then(function (response) {
-            return response.json();
+            return response.json()
         })
         .then(function (data) {
-
-            // Log the queryURL
             console.log(queryURL);
         
-            // Log the resulting object
             console.log(data);
-        });
+            
+            // Convert the temp to Celsius
+    const tempC = data.main.temp - 273.15;
 
+    console.log("Wind Speed: " + data.wind.speed);
+    console.log("Humidity: " + data.main.humidity);
+    console.log("Temperature (C): " + tempC.toFixed(2));
+})
+};
+
+
+
+// Click Event Function for search button
+$("#search-button").on("click", function (event) {
+    event.preventDefault();
+    var cityName = $("#search-input").val();
+    currentWeatherSection(cityName);
 });
-
