@@ -1,23 +1,23 @@
 // ---------------Pseudo Code---------------
 // when User searches for a city (clicks search button - click event):
-//  - store the user input in a variable
-//  - use a fetch api to get the current & future conditions for that city
+//!  - store the user input in a variable
+//!  - use a fetch api to get the current & future conditions for that city
 //  - store that city into local storage
 
 // use the data from fetch to populate in the current-weather container:
 //!  - The city name
-//  - The date (DD/M/YYYY)
-//  - An icon representation of weather conditions
+//!  - The date (DD/M/YYYY)
+//!  - An icon representation of weather conditions
 //!  - The temperature (Degs C)
 //!  - The wind speed (KPH)
 //!  - The humidity (%)
 
 // use the data from fetch to populate in the 5 Day forecast container:
-//  - The date (DD/M/YYYY)
-//  - An icon representation of weather conditions
-//  - The temperature (Degs C)
-//  - The wind speed (KPH)
-//  - The humidity (%)
+//!  - The date (DD/M/YYYY)
+//!  - An icon representation of weather conditions
+//!  - The temperature (Degs C)
+//!  - The wind speed (KPH)
+//!  - The humidity (%)
 
 // use data in local.storage to create a city button under the <hr> in search area for city history
 //  - when you click the city button it displays the current and future conditions for that city
@@ -26,6 +26,54 @@
 
 // This is my API key
 const apiKey = "f96c7a671884714421e9e81f5f24d150";
+var savedSearches = [];
+
+// make list of previously searched cities
+var searchHistoryList = function (cityName) {
+    $('.past-search:contains("' + cityName + '")').remove();
+
+    // create entry with city name
+    var searchHistoryEntry = $("<p>");
+    searchHistoryEntry.addClass("past-search");
+    searchHistoryEntry.text(cityName);
+
+    // create container for entry
+    var searchEntryContainer = $("<div>");
+    searchEntryContainer.addClass("past-search-container");
+
+    // append entry to container
+    searchEntryContainer.append(searchHistoryEntry);
+
+    // append entry container to search history container
+    var searchHistoryContainerEl = $("#history");
+    searchHistoryContainerEl.append(searchEntryContainer);
+
+    if (savedSearches.length > 0) {
+        // update savedSearches array with previously saved searches
+        var previousSavedSearches = localStorage.getItem("savedSearches");
+        savedSearches = JSON.parse(previousSavedSearches);
+    }
+
+    // add city name to the array of saved searches
+    savedSearches.push(cityName);
+    localStorage.setItem("savedSearches", JSON.stringify(savedSearches));
+
+    // reset search input
+    $("#search-input").val("");
+};
+
+var loadSearchHistory = function () {
+    // get saved search history
+    var savedSearchHistory = localStorage.getItem("savedSearches");
+
+    // initialize savedSearches if null or undefined
+    savedSearches = savedSearchHistory ? JSON.parse(savedSearchHistory) : [];
+
+    // go through savedSearches array and make an entry for each item in the list
+    for (var i = 0; i < savedSearches.length; i++) {
+        searchHistoryList(savedSearches[i]);
+    }
+};
 
 var currentWeatherSection = function (cityName) {
     const queryURL = `https://api.openweathermap.org/data/2.5/weather?q=${cityName}&appid=${apiKey}`;
@@ -165,11 +213,34 @@ var fiveDayForecastSection = function (cityName) {
         })
 };
 
-
-// Click Event Function for search button
-$("#search-button").on("click", function (event) {
+// called when the search form is submitted
+$("#search-form").on("submit", function(event) {
     event.preventDefault();
+    
+    // get name of city searched
     var cityName = $("#search-input").val();
-    currentWeatherSection(cityName);
-    fiveDayForecastSection(cityName);
+
+    if (cityName === "" || cityName == null) {
+        //send alert if search input is empty when submitted
+        alert("Please enter name of city.");
+        event.preventDefault();
+    } else {
+        // if cityName is valid, add it to search history list and display its weather conditions
+        currentWeatherSection(cityName);
+        fiveDayForecastSection(cityName);
+    }
 });
+
+// called when a search history entry is clicked
+$("#history").on("click", "p", function() {
+    // get text (city name) of entry and pass it as a parameter to display weather conditions
+    var previousCityName = $(this).text();
+    currentWeatherSection(previousCityName);
+    fiveDayForecastSection(previousCityName);
+
+    //
+    var previousCityClicked = $(this);
+    previousCityClicked.remove();
+});
+
+loadSearchHistory();
