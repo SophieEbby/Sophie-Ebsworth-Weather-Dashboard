@@ -27,43 +27,67 @@
 // This is my API key
 const apiKey = "f96c7a671884714421e9e81f5f24d150";
 
-const currentWeatherSection = function (cityName) {
+var currentWeatherSection = function (cityName) {
     const queryURL = `https://api.openweathermap.org/data/2.5/weather?q=${cityName}&appid=${apiKey}`;
 
+    // get and use data from open weather current weather api end point
     fetch(queryURL)
+        // get response and turn it into objects
         .then(function (response) {
-            return response.json()
+            return response.json();
         })
-        .then(function (data) {
-            console.log(queryURL);
+        .then(function (response) {
+            // get city's longitude and latitude
+            var cityLon = response.coord.lon;
+            var cityLat = response.coord.lat;
 
-            console.log(data);
+            const queryURL2 = `https://api.openweathermap.org/data/2.5/weather?lat=${cityLat}&lon=${cityLon}&appid=${apiKey}`;
 
-            // Convert the temp to Celsius
-            const tempC = data.main.temp - 273.15;
+            fetch(queryURL2)
+                // get response from one call api and turn it into objects
+                .then(function (response) {
+                    return response.json();
+                })
+                // get data from response and apply them to the current weather section
 
-            console.log("Wind Speed: " + data.wind.speed);
-            console.log("Humidity: " + data.main.humidity);
-            console.log("Temperature (°C) " + tempC.toFixed(2));
+                .then(function (response) {
+                    console.log(response);
+                    // Create a new current weather container
+                    var currentWeatherContainer = $("<div>").addClass("current-weather-container");
 
-            // Clear existing content
-            $("#today").empty();
+                    // add city name, date, and weather icon to current weather section title
+                    var currentTitle = $("<h2>").addClass("current-title");
+                    var currentDay = dayjs().format("D/M/YYYY");
+                    currentTitle.text(`${cityName} (${currentDay})`);
 
-            // Create and append div for city
-            const cityDiv = $("<div>").addClass("weather-info").text("City: " + data.name);
-            $("#today").append(cityDiv);
+                    var currentIcon = $("<img>").addClass("current-weather-icon");
+                    var currentIconCode = response.weather[0].icon;
+                    currentIcon.attr("src", `https://openweathermap.org/img/wn/${currentIconCode}@2x.png`);
 
-            // Create and append div for wind
-            const windDiv = $("<div>").addClass("weather-info").text("Wind: " + data.wind.speed + " KPH");
-            $("#today").append(windDiv);
+                    currentTitle.append(currentIcon);
+                    currentWeatherContainer.append(currentTitle);
 
-            // Create and append div for Temp
-            const tempCDiv = $("<div>").addClass("weather-info").text("Temperature (°C): " + Math.round(tempC) + "°C");
-            $("#today").append(tempCDiv);
+                    // Convert the temp to Celsius
+                    const tempC = response.main.temp - 273.15;
 
-            // Create and append div for humidity
-            const humidityDiv = $("<div>").addClass("weather-info").text("Humidity: " + data.main.humidity + "%");
-            $("#today").append(humidityDiv);
+                    // add current temperature to page
+                    var currentTemperature = $("<div>").addClass("current-temperature");
+                    currentTemperature.text("Temp: " + Math.round(tempC) + " °C"); // Rounded to two decimal places
+                    currentWeatherContainer.append(currentTemperature);
+
+                    // add current wind speed to page
+                    var currentWindSpeed = $("<div>").addClass("current-wind-speed");
+                    currentWindSpeed.text("Wind: " + (response.wind.speed * 3.6).toFixed(2) + " KPH");
+                    currentWeatherContainer.append(currentWindSpeed);
+
+                    // add current humidity to page
+                    var currentHumidity = $("<div>").addClass("current-humidity");
+                    currentHumidity.text("Humidity: " + response.main.humidity + "%");
+                    currentWeatherContainer.append(currentHumidity);
+
+                    // Append the currentWeatherContainer to the element with ID 'today'
+                    $("#today").append(currentWeatherContainer);
+                })
         })
 };
 
@@ -87,16 +111,26 @@ var fiveDayForecastSection = function (cityName) {
                 .then(function (response) {
                     console.log(response);
 
-                    // add 5 day forecast title
-                    var futureForecastTitle = $("#forecast");
-                    futureForecastTitle.text("5-Day Forecast:")
+                    // Clear existing content in the forecast section
+                    $("#forecast").empty();
+
+                    // Add 5 day forecast title
+                    var futureForecastTitle = $("<h2>").addClass("future-forecast-title");
+                    futureForecastTitle.text("5-Day Forecast:");
+                    $("#forecast").append(futureForecastTitle);
+
+                    // Create a container for forecast cards
+                    var forecastCardsContainer = $("<div>").addClass("row mt-3");
+                    $("#forecast").append(forecastCardsContainer);
+
+
                     // using data from response, set up each day of 5 day forecast
                     for (var i = 1; i <= 5; i++) {
                         // Create a new card container
-                        var futureCard = $("<div>").addClass("future-card future-card-details");
+                        var futureCard = $("<div>").addClass("col-md-2 future-card future-card-details");
 
-                        // Append the card container to the forecast section
-                        $("#forecast").append(futureCard);
+                        // Append the card container to the forecast cards container
+                        forecastCardsContainer.append(futureCard);
 
                         // add date to 5 day forecast
                         var futureDate = $("<div>").addClass("future-date").attr("id", "future-date-" + i);
@@ -113,12 +147,17 @@ var fiveDayForecastSection = function (cityName) {
                         // add temp to 5 day forecast
                         const tempC = response.list[i].main.temp - 273.15;
                         var futureTemp = $("<div>").addClass("future-temp").attr("id", "future-temp-" + i);
-                        futureTemp.text("Temp: " + Math.round(tempC) + "°C"); // Rounded to the nearest whole number
+                        futureTemp.text("Temp: " + Math.round(tempC) + " °C"); // Rounded to the nearest whole number
                         futureCard.append(futureTemp);
+
+                        // add wind to 5 day forecast
+                        var futureWind = $("<div>").addClass("future-wind").attr("id", "future-wind-" + i);
+                        futureWind.text("Wind: " + (response.list[i].wind.speed * 3.6).toFixed(2) + " KPH");
+                        futureCard.append(futureWind);
 
                         // add humidity to 5 day forecast
                         var futureHumidity = $("<div>").addClass("future-humidity").attr("id", "future-humidity-" + i);
-                        futureHumidity.text("Humidity: " + Math.round(response.list[i].main.humidity) + "%");
+                        futureHumidity.text("Humidity: " + Math.round(response.list[i].main.humidity) + " %");
                         futureCard.append(futureHumidity);
 
                     }
