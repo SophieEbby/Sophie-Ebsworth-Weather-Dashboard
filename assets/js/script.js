@@ -29,26 +29,43 @@ const apiKey = "f96c7a671884714421e9e81f5f24d150";
 
 const currentWeatherSection = function (cityName) {
     const queryURL = `https://api.openweathermap.org/data/2.5/weather?q=${cityName}&appid=${apiKey}`;
-    
+
     fetch(queryURL)
         .then(function (response) {
             return response.json()
         })
         .then(function (data) {
             console.log(queryURL);
-        
+
             console.log(data);
             
             // Convert the temp to Celsius
-    const tempC = data.main.temp - 273.15;
+            const tempC = data.main.temp - 273.15;
 
-    console.log("Wind Speed: " + data.wind.speed);
-    console.log("Humidity: " + data.main.humidity);
-    console.log("Temperature (C): " + tempC.toFixed(2));
-})
+            console.log("Wind Speed: " + data.wind.speed);
+            console.log("Humidity: " + data.main.humidity);
+            console.log("Temperature (°C) " + tempC.toFixed(2));
+
+            // Clear existing content
+            $("#today").empty();
+
+            // Create and append div for city
+            const cityDiv = $("<div>").addClass("weather-info").text("City: " + data.name);
+            $("#today").append(cityDiv);
+
+            // Create and append div for wind
+            const windDiv = $("<div>").addClass("weather-info").text("Wind: " + data.wind.speed + " m/s");
+            $("#today").append(windDiv);
+
+            // Create and append div for Temp
+            const tempCDiv = $("<div>").addClass("weather-info").text("Temperature (°C): " + tempC.toFixed(2) + "°C");
+            $("#today").append(tempCDiv);
+
+            // Create and append div for humidity
+            const humidityDiv = $("<div>").addClass("weather-info").text("Humidity: " + data.main.humidity + "%");
+            $("#today").append(humidityDiv);
+        })
 };
-
-
 
 // Click Event Function for search button
 $("#search-button").on("click", function (event) {
