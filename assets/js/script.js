@@ -5,12 +5,12 @@
 //  - store that city into local storage
 
 // use the data from fetch to populate in the current-weather container:
-//  - The city name
+//!  - The city name
 //  - The date (DD/M/YYYY)
 //  - An icon representation of weather conditions
-//  - The temperature (Degs C)
-//  - The wind speed (KPH)
-//  - The humidity (%)
+//!  - The temperature (Degs C)
+//!  - The wind speed (KPH)
+//!  - The humidity (%)
 
 // use the data from fetch to populate in the 5 Day forecast container:
 //  - The date (DD/M/YYYY)
@@ -38,7 +38,7 @@ const currentWeatherSection = function (cityName) {
             console.log(queryURL);
 
             console.log(data);
-            
+
             // Convert the temp to Celsius
             const tempC = data.main.temp - 273.15;
 
@@ -54,7 +54,7 @@ const currentWeatherSection = function (cityName) {
             $("#today").append(cityDiv);
 
             // Create and append div for wind
-            const windDiv = $("<div>").addClass("weather-info").text("Wind: " + data.wind.speed + " m/s");
+            const windDiv = $("<div>").addClass("weather-info").text("Wind: " + data.wind.speed + " KPH");
             $("#today").append(windDiv);
 
             // Create and append div for Temp
@@ -67,9 +67,34 @@ const currentWeatherSection = function (cityName) {
         })
 };
 
+var fiveDayForecastSection = function (cityName) {
+    // get and use data from open weather current weather api end point
+    fetch(`https://api.openweathermap.org/data/2.5/weather?q=${cityName}&appid=${apiKey}`)
+        // get response and turn it into objects
+        .then(function (response) {
+            return response.json();
+        })
+        .then(function (response) {
+            // get city's longitude and latitude
+            var cityLon = response.coord.lon;
+            var cityLat = response.coord.lat;
+
+            fetch(`api.openweathermap.org/data/2.5/forecast?lat=${cityLat}&lon=${cityLon}&appid=${apiKey}`)
+                // get response from one call api and turn it into objects
+                .then(function (response) {
+                    return response.json();
+                })
+                .then(function (response) {
+                    console.log(response);
+                })
+        })
+};
+
+
 // Click Event Function for search button
 $("#search-button").on("click", function (event) {
     event.preventDefault();
     var cityName = $("#search-input").val();
     currentWeatherSection(cityName);
+    fiveDayForecastSection(cityName);
 });
