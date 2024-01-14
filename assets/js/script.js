@@ -58,7 +58,7 @@ const currentWeatherSection = function (cityName) {
             $("#today").append(windDiv);
 
             // Create and append div for Temp
-            const tempCDiv = $("<div>").addClass("weather-info").text("Temperature (°C): " + tempC.toFixed(2) + "°C");
+            const tempCDiv = $("<div>").addClass("weather-info").text("Temperature (°C): " + Math.round(tempC) + "°C");
             $("#today").append(tempCDiv);
 
             // Create and append div for humidity
@@ -79,13 +79,49 @@ var fiveDayForecastSection = function (cityName) {
             var cityLon = response.coord.lon;
             var cityLat = response.coord.lat;
 
-            fetch(`api.openweathermap.org/data/2.5/forecast?lat=${cityLat}&lon=${cityLon}&appid=${apiKey}`)
+            fetch(`https://api.openweathermap.org/data/2.5/forecast?lat=${cityLat}&lon=${cityLon}&appid=${apiKey}`)
                 // get response from one call api and turn it into objects
                 .then(function (response) {
                     return response.json();
                 })
                 .then(function (response) {
                     console.log(response);
+
+                    // add 5 day forecast title
+                    var futureForecastTitle = $("#forecast");
+                    futureForecastTitle.text("5-Day Forecast:")
+                    // using data from response, set up each day of 5 day forecast
+                    for (var i = 1; i <= 5; i++) {
+                        // Create a new card container
+                        var futureCard = $("<div>").addClass("future-card future-card-details");
+
+                        // Append the card container to the forecast section
+                        $("#forecast").append(futureCard);
+
+                        // add date to 5 day forecast
+                        var futureDate = $("<div>").addClass("future-date").attr("id", "future-date-" + i);
+                        date = dayjs().add(i, "d").format("D/M/YYYY");
+                        futureDate.text(date);
+                        futureCard.append(futureDate);
+
+                        // add icon to 5 day forecast
+                        var futureIcon = $("<img>").addClass("future-icon");
+                        var futureIconCode = response.list[i].weather[0].icon;
+                        futureIcon.attr("src", `https://openweathermap.org/img/wn/${futureIconCode}@2x.png`);
+                        futureCard.append(futureIcon);
+
+                        // add temp to 5 day forecast
+                        const tempC = response.list[i].main.temp - 273.15;
+                        var futureTemp = $("<div>").addClass("future-temp").attr("id", "future-temp-" + i);
+                        futureTemp.text("Temp: " + Math.round(tempC) + "°C"); // Rounded to the nearest whole number
+                        futureCard.append(futureTemp);
+
+                        // add humidity to 5 day forecast
+                        var futureHumidity = $("<div>").addClass("future-humidity").attr("id", "future-humidity-" + i);
+                        futureHumidity.text("Humidity: " + Math.round(response.list[i].main.humidity) + "%");
+                        futureCard.append(futureHumidity);
+
+                    }
                 })
         })
 };
