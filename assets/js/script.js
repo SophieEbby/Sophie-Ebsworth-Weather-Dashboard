@@ -19,8 +19,8 @@
 //!  - The wind speed (KPH)
 //!  - The humidity (%)
 
-// use data in local.storage to create a city button under the <hr class="hr weather-hr" /> in search area for city history
-//  - when you click the city button it displays the current and future conditions for that city
+//! use data in local.storage to create a city button under the <hr class="hr weather-hr" /> in search area for city history
+//!  - when you click the city button it displays the current and future conditions for that city
 
 // ---------------- Global Variables -----------------------
 
@@ -179,6 +179,7 @@ $("#search-button").on("click", function (event) {
     // Call the functions to display current weather and 5-day forecast
     currentWeatherSection(cityName);
     fiveDayForecastSection(cityName);
+    displayCityHistory();
 });
 
 // Function to store city name in local storage
@@ -192,3 +193,34 @@ function storeCityInLocalStorage(cityName) {
     // Store the updated city history back in local storage
     localStorage.setItem("cityHistory", JSON.stringify(cityHistory));
 }
+
+// Function to display city history buttons
+function displayCityHistory() {
+    // Get the city history from local storage
+    var cityHistory = JSON.parse(localStorage.getItem("cityHistory")) || [];
+
+    // Get the element where you want to display the buttons
+    var historyContainer = $("#history");
+
+    // Clear existing content
+    historyContainer.empty();
+
+    // Create buttons for each city in the history
+    for (var i = 0; i < cityHistory.length; i++) {
+        var cityButton = $("<button>")
+            .addClass("btn btn-secondary city-button")
+            .text(cityHistory[i])
+            .on("click", function () {
+                // Handle button click event, e.g., display weather for the selected city
+                var selectedCity = $(this).text();
+                currentWeatherSection(selectedCity);
+                fiveDayForecastSection(selectedCity);
+            });
+
+        // Append the button to the history container
+        historyContainer.append(cityButton);
+    }
+}
+
+// Call this function to display city history when the page loads
+displayCityHistory();
