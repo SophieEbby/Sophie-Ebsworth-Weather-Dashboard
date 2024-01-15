@@ -208,7 +208,7 @@ function displayCityHistory() {
     // Create buttons for each city in the history
     for (var i = 0; i < cityHistory.length; i++) {
         var cityButton = $("<button>")
-            .addClass("btn btn-secondary city-button")
+            .addClass("btn city-button")
             .text(cityHistory[i])
             .on("click", function () {
                 // Handle button click event, e.g., display weather for the selected city
